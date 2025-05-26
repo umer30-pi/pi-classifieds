@@ -1,66 +1,60 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Style Fitters - Pi Classifieds</title>
+  <link rel="stylesheet" href="style.css">
   <script src="https://sdk.minepi.com/pi-sdk.js"></script>
-  <style>
-    body { font-family: Arial, sans-serif; padding: 2em; background: #f9f9f9; }
-    .listing { border: 1px solid #ccc; border-radius: 8px; padding: 1em; margin-bottom: 1em; background: #fff; }
-    .btn { padding: 0.5em 1em; background: #0070f3; color: white; border: none; border-radius: 4px; cursor: pointer; }
-  </style>
 </head>
 <body>
-  <h1>Style Fitters - Pi Classifieds</h1>
-  <p id="welcome">Login with Pi to start listing or promoting goods.</p>
-  <button class="btn" onclick="loginWithPi()">Login with Pi</button> <div id="listings">
-    <div class="listing">
-      <h3>Used Laptop - Rs 35,000</h3>
-      <p>Good condition. Lahore. Photo available on Pi Chat.</p>
-      <button class="btn" onclick="promoteListing('Used Laptop')">Promote with Pi</button>
-    </div>
-    <div class="listing">
-      <h3>Secondhand Sofa - Rs 12,000</h3>
-      <p>Karachi pickup. Slightly used. Contact via Pi Chat.</p>
-      <button class="btn" onclick="promoteListing('Secondhand Sofa')">Promote with Pi</button>
-    </div>
-  </div> <script>
-    let piUser = null;
+  <header>
+    <h1>Style Fitters - Pi Classifieds</h1>
+    <p>Login with Pi to start listing or promoting goods.</p>
+    <button id="pi-login-btn">Login with Pi</button>
+  </header>
 
-    function loginWithPi() {
-      Pi.authenticate(['username'], function(authData) {
-        piUser = authData.user;
-        document.getElementById("welcome").innerText = `Welcome, @${piUser.username}`;
-      }, function(error) {
-        console.error(error);
-        alert("Pi login failed.");
-      });
-    }
+  <main>
+    <div class="product-list">
+      <div class="product-card">
+        <h2>Used Laptop - Rs 35,000</h2>
+        <p>Good condition. Lahore. Photo available on Pi Chat.</p>
+        <button>Promote with Pi</button>
+      </div>
 
-    function promoteListing(itemName) {
-      if (!piUser) {
-        alert("Please login with Pi first.");
+      <div class="product-card">
+        <h2>Secondhand Sofa - Rs 12,000</h2>
+        <p>Karachi pickup. Slightly used. Contact via Pi Chat.</p>
+        <button>Promote with Pi</button>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <p>Powered by Pi Network | Style Fitters 2025</p>
+  </footer>
+
+  <script>
+    document.getElementById("pi-login-btn").addEventListener("click", async () => {
+      if (!window.Pi) {
+        alert("Pi SDK not loaded. Please open this site in the Pi Browser.");
         return;
       }
-      Pi.createPayment({
-        amount: 1,
-        memo: `Promote ${itemName}`,
-        metadata: { item: itemName }
-      }, {
-        onReadyForServerApproval: function(paymentId) {
-          console.log("Payment ready for server approval:", paymentId);
-        },
-        onReadyForServerCompletion: function(paymentId, txid) {
-          console.log("Payment complete:", paymentId, txid);
-          alert(`${itemName} promoted successfully!`);
-        },
-        onCancel: function(paymentId) {
-          alert("Payment cancelled.");
-        },
-        onError: function(error, paymentId) {
-          alert("Payment failed:", error);
-        }
-      });
+
+      try {
+        const scopes = ['username', 'payments'];
+        const authResult = await Pi.authenticate(scopes, onIncompletePaymentFound);
+        alert("Welcome, " + authResult.user.username);
+        console.log(authResult);
+      } catch (err) {
+        console.error("Pi authentication failed:", err);
+        alert("Login failed. Please try again.");
+      }
+    });
+
+    function onIncompletePaymentFound(payment) {
+      console.log("Incomplete payment found", payment);
     }
-  </script></body>
+  </script>
+</body>
 </html>
