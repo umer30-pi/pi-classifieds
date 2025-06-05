@@ -6,6 +6,49 @@
   <title>Style Fitters - Pi Classifieds</title>
   <link rel="stylesheet" href="style.css">
   <script src="https://sdk.minepi.com/pi-sdk.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 20px;
+      background: #f4f4f4;
+    }
+
+    header, footer {
+      background-color: #5e2ca5;
+      color: white;
+      padding: 15px;
+    }
+
+    .product-list, #ads-section {
+      margin-top: 20px;
+    }
+
+    .product-card {
+      background: white;
+      padding: 15px;
+      margin: 10px auto;
+      border-radius: 8px;
+      max-width: 400px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.2);
+    }
+
+    form input, form textarea, form button {
+      display: block;
+      width: 90%;
+      margin: 10px auto;
+      padding: 10px;
+    }
+
+    #ad-form {
+      background: white;
+      padding: 15px;
+      max-width: 400px;
+      margin: 20px auto;
+      border-radius: 8px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.2);
+    }
+  </style>
 </head>
 <body>
   <header>
@@ -14,33 +57,27 @@
     <button id="pi-login-btn">Login with Pi</button>
   </header>
 
-  <main>
-    <div class="product-list">
-      <div class="product-card">
-        <h2>Used Laptop - Rs 35,000</h2>
-        <p>Good condition. Lahore. Photo available on Pi Chat.</p>
-        <button>Promote with Pi</button>
-      </div>
+  <!-- Ad Form -->
+  <form id="ad-form" style="display:none;">
+    <h2>Post a New Ad</h2>
+    <input type="text" id="title" placeholder="Title" required>
+    <input type="text" id="price" placeholder="Price (e.g. Rs 12000)" required>
+    <input type="text" id="location" placeholder="Location (e.g. Lahore)" required>
+    <textarea id="description" placeholder="Description" required></textarea>
+    <button type="submit">Post Ad</button>
+  </form>
 
-      <div class="product-card">
-        <h2>Secondhand Sofa - Rs 12,000</h2>
-        <p>Karachi pickup. Slightly used. Contact via Pi Chat.</p>
-        <button>Promote with Pi</button>
-      </div>
-    </div>
-  </main>
+  <!-- Display Posted Ads -->
+  <div id="ads-section">
+    <h2>Latest Ads</h2>
+  </div>
 
   <footer>
     <p>Powered by Pi Network | Style Fitters 2025</p>
   </footer>
 
   <script>
-    // Initialize the Pi SDK
-    Pi.init({
-      version: "2.0",
-      sandbox: false // Set to true only if testing in sandbox mode
-    });
-
+    // Pi Login
     document.getElementById("pi-login-btn").addEventListener("click", async () => {
       if (!window.Pi) {
         alert("Pi SDK not loaded. Please open this site in the Pi Browser.");
@@ -51,7 +88,9 @@
         const scopes = ['username', 'payments'];
         const authResult = await Pi.authenticate(scopes, onIncompletePaymentFound);
         alert("Welcome, " + authResult.user.username);
-        console.log(authResult);
+
+        // Show the ad form after login
+        document.getElementById("ad-form").style.display = "block";
       } catch (err) {
         console.error("Pi authentication failed:", err);
         alert("Login failed. Please try again.");
@@ -61,29 +100,42 @@
     function onIncompletePaymentFound(payment) {
       console.log("Incomplete payment found", payment);
     }
-  </script>
-</body>
-</html>  <script>
-    document.getElementById("pi-login-btn").addEventListener("click", async () => {
-      if (!window.Pi) {
-        alert("Pi SDK not loaded. Please open this site in the Pi Browser.");
-        return;
-      }
 
-      try {
-        const scopes = ['username', 'payments'];
-        const authResult = await Pi.authenticate(scopes, onIncompletePaymentFound);
-        alert("Welcome, " + authResult.user.username);
-        console.log(authResult);
-      } catch (err) {
-        console.error("Pi authentication failed:", err);
-        alert("Login failed. Please try again.");
-      }
+    // Save Ad
+    document.getElementById("ad-form").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const ad = {
+        title: document.getElementById("title").value,
+        price: document.getElementById("price").value,
+        location: document.getElementById("location").value,
+        description: document.getElementById("description").value
+      };
+
+      const ads = JSON.parse(localStorage.getItem("ads") || "[]");
+      ads.push(ad);
+      localStorage.setItem("ads", JSON.stringify(ads));
+      alert("Ad posted!");
+
+      // Reload ads
+      loadAds();
     });
 
-    function onIncompletePaymentFound(payment) {
-      console.log("Incomplete payment found", payment);
+    // Load Ads
+    function loadAds() {
+      const ads = JSON.parse(localStorage.getItem("ads") || "[]");
+      const section = document.getElementById("ads-section");
+      section.innerHTML = '<h2>Latest Ads</h2>';
+
+      ads.reverse().forEach(ad => {
+        const div = document.createElement("div");
+        div.className = "product-card";
+        div.innerHTML = `<h3>${ad.title} - ${ad.price}</h3><p>${ad.description}</p><p><strong>${ad.location}</strong></p>`;
+        section.appendChild(div);
+      });
     }
+
+    // Load ads on page load
+    window.onload = loadAds;
   </script>
 </body>
 </html>
